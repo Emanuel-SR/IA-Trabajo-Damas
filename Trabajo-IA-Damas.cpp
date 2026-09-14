@@ -44,7 +44,7 @@ public:
         inicializar();
     }
     void inicializar(){
-        // Primero dejamos todas las casillas vacías
+        // primero dejamos todas las casillas vacías
         for (int f = 0; f < 8; f++)
         {
             for (int c = 0; c < 8; c++)
@@ -100,7 +100,7 @@ public:
                 if (matriz[f][c].equipo != equipo)
                     continue;
 
-                // Revisamos los dos movimientos
+                // revisamos los dos movimientos
                 for (int dc = -1; dc <= 1; dc += 2) {
                     int nf = f + direccion;
                     int nc = c + dc;
@@ -308,6 +308,74 @@ private:
             return mejor;
         }
     }
+
+    int minimaxAlphaBeta(Nodo* nodo, int profundidad, int alpha, int beta, bool maximizando, Equipo turno)
+    {
+        if (profundidad == 0)
+        {
+            nodo->valor = nodo->tablero.evaluar();
+            return nodo->valor;
+        }
+
+        vector<Movimiento> movimientos = nodo->tablero.generarMovimientos(turno);
+
+        if (movimientos.empty())
+        {
+            nodo->valor = nodo->tablero.evaluar();
+            return nodo->valor;
+        }
+
+        if (maximizando)
+        {
+            int mejorValor = -99999;
+
+            for (const auto& mov : movimientos)
+            {
+                Nodo* hijo = new Nodo();
+                hijo->tablero = nodo->tablero;
+                hijo->tablero.aplicarMovimiento(mov);
+                hijo->movimiento = mov;
+
+                nodo->hijos.push_back(hijo);
+
+                int valor = minimaxAlphaBeta(hijo, profundidad - 1, alpha, beta, false, oponente(turno));
+
+                if (valor > mejorValor) mejorValor = valor;
+                if (mejorValor > alpha) alpha = mejorValor;
+
+                if (beta <= alpha) {
+                    break;
+                }
+            }
+            nodo->valor = mejorValor;
+            return mejorValor;
+        }
+        else
+        {
+            int mejorValor = 99999;
+
+            for (const auto& mov : movimientos)
+            {
+                Nodo* hijo = new Nodo();
+                hijo->tablero = nodo->tablero;
+                hijo->tablero.aplicarMovimiento(mov);
+                hijo->movimiento = mov;
+
+                nodo->hijos.push_back(hijo);
+
+                int valor = minimaxAlphaBeta(hijo, profundidad - 1, alpha, beta, true, oponente(turno));
+
+                if (valor < mejorValor) mejorValor = valor;
+                if (mejorValor < beta) beta = mejorValor;
+
+                if (beta <= alpha) {
+                    break;
+                }
+            }
+            nodo->valor = mejorValor;
+            return mejorValor;
+        }
+    }
 public:
     Movimiento obtenerMejorMovimiento(const Tablero& tableroActual, int profundidad)
     {
@@ -328,6 +396,37 @@ public:
 
         delete raiz;
         return mejor;
+    }
+
+    Movimiento obtenerMejorMovimientoAlphaBeta(const Tablero& tableroActual, int profundidad, Equipo equipo)
+    {
+        Nodo* raiz = new Nodo();
+            raiz->tablero = tableroActual;
+
+            bool esMaximizador = (equipo == NEGRO);
+
+            minimaxAlphaBeta(raiz, profundidad, -99999, 99999, esMaximizador, equipo);
+
+            int mejorValor = esMaximizador ? -99999 : 99999;
+            Movimiento mejor = raiz->hijos[0]->movimiento; // Fallback
+
+            for (Nodo* hijo : raiz->hijos)
+            {
+                if (esMaximizador) {
+                    if (hijo->valor > mejorValor) {
+                        mejorValor = hijo->valor;
+                        mejor = hijo->movimiento;
+                    }
+                } else {
+                    if (hijo->valor < mejorValor) {
+                        mejorValor = hijo->valor;
+                        mejor = hijo->movimiento;
+                    }
+                }
+            }
+
+            delete raiz;
+            return mejor;
     }
 };
 
@@ -412,7 +511,8 @@ private:
 
         if (turnoActual == NEGRO)
         {
-            Movimiento mejor = ia.obtenerMejorMovimiento(tablero, profundidadIA);
+            //Movimiento mejor = ia.obtenerMejorMovimiento(tablero, profundidadIA);
+            Movimiento mejor = ia.obtenerMejorMovimientoAlphaBeta(tablero, profundidadIA, turnoActual);
             tablero.aplicarMovimiento(mejor);
             turnoActual = BLANCO;
         }
@@ -488,7 +588,6 @@ int main()
         Juego juego(profundidad, inicia);
         juego.ejecutar();
 
-        return 0;
 
     return 0;
 }
