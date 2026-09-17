@@ -10,7 +10,7 @@ Docente: Juan Carlos Gutierrez Caceres
 Integrantes:
 
 -Julio Eduardo Pino Charun
--Emanuel Rodrigo Santiago Salas Ramos
+-Rodrigo Emanuel Santiago Salas Ramos
 -Gianella Ariana Rosas Lipa
 
 */
