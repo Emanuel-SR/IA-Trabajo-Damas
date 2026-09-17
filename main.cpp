@@ -2,6 +2,18 @@
 #include <iostream>
 #include <vector>
 
+
+/*
+Curso: Inteligencia Artificial
+Docente: Juan Carlos Gutierrez Caceres
+
+Integrantes:
+
+-Julio Eduardo Pino Charun
+-Emanuel Rodrigo Santiago Salas Ramos
+-Gianella Ariana Rosas Lipa
+
+*/
 using namespace std;
 
 enum Equipo
@@ -40,10 +52,10 @@ class Tablero
 private:
     Ficha matriz[8][8];
 public:
-    Tablero(){
+    Tablero() {
         inicializar();
     }
-    void inicializar(){
+    void inicializar() {
         // primero dejamos todas las casillas vacías
         for (int f = 0; f < 8; f++)
         {
@@ -220,7 +232,7 @@ struct Nodo
 
     ~Nodo()
     {
-        for (Nodo* hijo: hijos)
+        for (Nodo* hijo : hijos)
         {
             delete hijo;
         }
@@ -237,7 +249,7 @@ private:
         // Si llegamos al límite de búsqueda
         if (profundidad == 0)
         {
-            nodo->valor =nodo->tablero.evaluar();
+            nodo->valor = nodo->tablero.evaluar();
             return nodo;
         }
 
@@ -401,32 +413,33 @@ public:
     Movimiento obtenerMejorMovimientoAlphaBeta(const Tablero& tableroActual, int profundidad, Equipo equipo)
     {
         Nodo* raiz = new Nodo();
-            raiz->tablero = tableroActual;
+        raiz->tablero = tableroActual;
 
-            bool esMaximizador = (equipo == NEGRO);
+        bool esMaximizador = (equipo == NEGRO);
 
-            minimaxAlphaBeta(raiz, profundidad, -99999, 99999, esMaximizador, equipo);
+        minimaxAlphaBeta(raiz, profundidad, -99999, 99999, esMaximizador, equipo);
 
-            int mejorValor = esMaximizador ? -99999 : 99999;
-            Movimiento mejor = raiz->hijos[0]->movimiento; // Fallback
+        int mejorValor = esMaximizador ? -99999 : 99999;
+        Movimiento mejor = raiz->hijos[0]->movimiento; // Fallback
 
-            for (Nodo* hijo : raiz->hijos)
-            {
-                if (esMaximizador) {
-                    if (hijo->valor > mejorValor) {
-                        mejorValor = hijo->valor;
-                        mejor = hijo->movimiento;
-                    }
-                } else {
-                    if (hijo->valor < mejorValor) {
-                        mejorValor = hijo->valor;
-                        mejor = hijo->movimiento;
-                    }
+        for (Nodo* hijo : raiz->hijos)
+        {
+            if (esMaximizador) {
+                if (hijo->valor > mejorValor) {
+                    mejorValor = hijo->valor;
+                    mejor = hijo->movimiento;
                 }
             }
+            else {
+                if (hijo->valor < mejorValor) {
+                    mejorValor = hijo->valor;
+                    mejor = hijo->movimiento;
+                }
+            }
+        }
 
-            delete raiz;
-            return mejor;
+        delete raiz;
+        return mejor;
     }
 };
 
@@ -445,22 +458,22 @@ private:
     void procesarEventos()
     {
         sf::Event event;
-                while (window.pollEvent(event))
-                {
-                    if (event.type == sf::Event::Closed)
-                        window.close();
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
 
-                    if (turnoActual == BLANCO && event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
-                    {
-                        sf::Vector2i pixelPos(event.mouseButton.x, event.mouseButton.y);
-                        sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
+            if (turnoActual == BLANCO && event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+            {
+                sf::Vector2i pixelPos(event.mouseButton.x, event.mouseButton.y);
+                sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
 
-                        int c = static_cast<int>(worldPos.x) / 80;
-                        int f = static_cast<int>(worldPos.y) / 80;
+                int c = static_cast<int>(worldPos.x) / 80;
+                int f = static_cast<int>(worldPos.y) / 80;
 
-                        manejarClickJugador(f, c);
-                    }
-                }
+                manejarClickJugador(f, c);
+            }
+        }
     }
 
     void manejarClickJugador(int f, int c)
@@ -475,7 +488,8 @@ private:
                 colOrigenClick = c;
                 fichaSeleccionada = true;
             }
-        } else
+        }
+        else
         {
             ejecutarMovimientoSiEsValido(f, c);
             fichaSeleccionada = false;
@@ -503,7 +517,16 @@ private:
         vector<Movimiento> posibles = tablero.generarMovimientos(turnoActual);
         if (posibles.empty())
         {
-            cout << (turnoActual == NEGRO ? "Gana el Jugador!" : "Gana la Maquina!") << endl;
+            int val = tablero.evaluar();
+            if (val == 0) {
+                cout << "Empate" << endl;
+            }
+            else if (val > 0) {
+                cout << "Gana la Maquina!" << endl;
+            }
+            else {
+                cout << "Gana el Jugador!" << endl;
+            }
             sf::sleep(sf::seconds(3));
             window.close();
             return;
@@ -511,7 +534,7 @@ private:
 
         if (turnoActual == NEGRO)
         {
-            //Movimiento mejor = ia.obtenerMejorMovimiento(tablero, profundidadIA);
+           //Movimiento mejor = ia.obtenerMejorMovimiento(tablero, profundidadIA);
             Movimiento mejor = ia.obtenerMejorMovimientoAlphaBeta(tablero, profundidadIA, turnoActual);
             tablero.aplicarMovimiento(mejor);
             turnoActual = BLANCO;
@@ -574,19 +597,19 @@ public:
 int main()
 {
     int profundidad;
-        do {
-            cout << "Ingrese profundidad de la IA (mayor a 0): ";
-            cin >> profundidad;
-        } while (profundidad < 1);
+    do {
+        cout << "Ingrese profundidad de la IA (mayor a 0): ";
+        cin >> profundidad;
+    } while (profundidad < 1);
 
-        int opcionInicio;
-        cout << "\n¿Quién empieza?\n1. Máquina\n2. Jugador\nOpción: ";
-        cin >> opcionInicio;
+    int opcionInicio;
+    cout << "\nQuien empieza?\n1. Maquina\n2. Jugador\nOpcion: ";
+    cin >> opcionInicio;
 
-        Equipo inicia = (opcionInicio == 1) ? NEGRO : BLANCO;
+    Equipo inicia = (opcionInicio == 1) ? NEGRO : BLANCO;
 
-        Juego juego(profundidad, inicia);
-        juego.ejecutar();
+    Juego juego(profundidad, inicia);
+    juego.ejecutar();
 
 
     return 0;
